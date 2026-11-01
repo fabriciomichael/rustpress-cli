@@ -37,12 +37,24 @@ pub const README_MD: &str = r#"
 
 Aplicação web desenvolvida com RustPress.
 
-## Executar
+## Requisitos
+
+- Rust
+- Cargo
+
+## Executar a aplicação
 
 ```bash
 cargo run
 
-"#;
+Depois de iniciar o servidor, acede a:
+
+http://127.0.0.1:3000
+Tecnologias
+- Rust
+- RustPress Web
+- Tokio
+  "#;
 
 pub const HOME_HTML: &str = r#"
 
