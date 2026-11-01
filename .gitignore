@@ -1,0 +1,15 @@
+/target
+/minha_app
+/minha_app2
+/minha_app3
+/minha_app4
+/minha_app5
+/minha_app6
+/minha-app
+/target/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db

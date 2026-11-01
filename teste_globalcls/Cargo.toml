@@ -1,0 +1,8 @@
+[package]
+name = "teste_globalcls"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rustpress-web = "0.1.0"
+tokio = { version = "1", features = ["full"] }
