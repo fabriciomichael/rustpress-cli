@@ -150,3 +150,7 @@ cargo install --path . --force
 ## Licença
 
 Este projecto é distribuído sob a licença MIT. Consulta o ficheiro [LICENSE](LICENSE) para mais informações.
+
+## Documentação
+
+- [Configurar o main.rs](docs/CONFIGURAR-MAIN.md): guia para configurar e iniciar uma aplicação utilizando o RustPress Web.
