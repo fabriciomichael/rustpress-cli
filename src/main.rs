@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use rustpress_cli::generator;
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "rustpress")]
@@ -11,16 +12,44 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    New { name: String },
+    /// Create a new RustPress project.
+    New {
+        /// Name of the project to create.
+        name: String,
+
+        /// Directory where the project will be created.
+        #[arg(short, long, default_value = ".")]
+        path: PathBuf,
+    },
+
+    /// Build a RustPress project for distribution.
+    Build {
+        /// Directories to include in the final distribution.
+        #[arg(long, value_delimiter = ',', required = true)]
+        include: Vec<PathBuf>,
+    },
 }
 
 fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::New { name } => {
-            if let Err(error) = generator::create_project(&name) {
+        Commands::New { name, path } => {
+            if let Err(error) = generator::create_project_at(&name, &path) {
                 eprintln!("Error: {}", error);
+                std::process::exit(1);
+            }
+        }
+
+        Commands::Build { include } => {
+            let project_path = std::env::current_dir().unwrap_or_else(|error| {
+                eprintln!("Error getting current directory: {}", error);
+                std::process::exit(1);
+            });
+
+            if let Err(error) = generator::build_project(&project_path, &include) {
+                eprintln!("Build error: {}", error);
+                std::process::exit(1);
             }
         }
     }

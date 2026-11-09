@@ -6,6 +6,10 @@
 /minha_app5
 /minha_app6
 /minha-app
+/teste-exit-code-sucesso
+/teste-path-padrao
+/teste-rustpress
+/teste-rustpress-mvc
 /target/
 .env
 .env.*
