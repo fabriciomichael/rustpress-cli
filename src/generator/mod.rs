@@ -40,7 +40,7 @@ pub fn create_project_at(name: &str, base_path: &Path) -> io::Result<()> {
 
     fs::create_dir_all(project_path.join("tests"))?;
 
-    // Estrutura de armazenamento dos ficheiros enviados pelos utilizadores.
+    // Storage structure for files uploaded by users.
     fs::create_dir_all(project_path.join("storage/uploads/images"))?;
     fs::create_dir_all(project_path.join("storage/uploads/documents"))?;
     fs::create_dir_all(project_path.join("storage/uploads/receipts"))?;

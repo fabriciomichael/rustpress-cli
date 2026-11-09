@@ -1,82 +1,141 @@
 # RustPress CLI
 
-**A ferramenta oficial de linha de comandos do framework RustPress.**
+**The official command-line interface for the RustPress web framework.**
 
-O RustPress CLI é uma ferramenta desenvolvida em Rust que permite criar automaticamente a estrutura inicial de aplicações web utilizando o framework [RustPress](https://github.com/fabriciomichael/rustpress-web).
+RustPress CLI is a command-line tool written in Rust that simplifies the creation and distribution of web applications built with [RustPress Web](https://github.com/fabriciomichael/rustpress-web).
 
-O seu objectivo é simplificar o processo de criação de projectos, evitando a configuração manual inicial de directórios e ficheiros.
+It automates project scaffolding, generates the initial application structure, and provides a production build command to prepare applications for distribution.
 
-## Funcionalidades
+## Features
 
-- Criação automática de projectos RustPress.
-- Geração da estrutura de directórios.
-- Criação dos ficheiros iniciais da aplicação.
-- Configuração das dependências do projecto.
-- Organização de rotas e controladores.
-- Estrutura inicial para modelos, middlewares e configurações.
-- Validação dos nomes dos projectos.
-- Protecção contra nomes reservados do Windows.
+- Automatic RustPress project creation.
+- Project directory and file generation.
+- Initial application configuration.
+- Organized routes and controllers.
+- Models, middleware, and configuration modules.
+- Project name validation.
+- Protection against reserved Windows names.
+- Production compilation in release mode.
+- Selective inclusion of resource directories in the final distribution.
+- Automatic organization of the executable and application resources.
 
-## Requisitos
+## Requirements
 
 - [Rust](https://www.rust-lang.org/tools/install)
 - Cargo
-- Framework RustPress (`rustpress-web`)
+- [RustPress Web](https://github.com/fabriciomichael/rustpress-web) (automatically added as a dependency to generated projects)
 
-## Instalação
+## Installation
 
-Após a publicação no crates.io, instala o RustPress CLI através do Cargo:
-
-```bash
-cargo install rustpress-cli
-```
-
-Depois da instalação, o comando `rustpress` estará disponível no terminal.
-
-## Utilização
-
-### Criar um projecto
+Install RustPress CLI using Cargo:
 
 ```bash
-rustpress new minha_app
+cargo install rustpress-cli --version 0.2.0
 ```
 
-### Entrar no projecto
+After installation, the `rustpress` command will be available in your terminal.
+
+## Usage
+
+### Create a new project
 
 ```bash
-cd minha_app
+rustpress new my_app
 ```
 
-### Executar a aplicação
+You can also specify a destination directory:
+
+```bash
+rustpress new my_app --path ./projects
+```
+
+### Run the application
+
+Navigate to the generated project:
+
+```bash
+cd my_app
+```
+
+Start the development server:
 
 ```bash
 cargo run
 ```
 
-Por padrão, o servidor é configurado para iniciar em:
+By default, the generated application listens on:
 
 ```text
 http://127.0.0.1:3000
 ```
 
-### Consultar os comandos disponíveis
+### Build a project for distribution
+
+RustPress CLI provides a `build` command that compiles the application in release mode and prepares an organized distribution directory.
+
+Run the command from the root directory of your RustPress application:
+
+```bash
+rustpress build --include views,public,storage
+```
+
+The `--include` option accepts a comma-separated list of resource directories to include in the final distribution.
+
+For example:
+
+```bash
+rustpress build --include views,public
+```
+
+The command performs the following operations:
+
+1. Validates the selected directories.
+2. Compiles the application using `cargo build --release`.
+3. Creates a distribution directory.
+4. Copies the selected resource directories.
+5. Copies the compiled executable into the distribution directory.
+
+The resulting structure looks like this:
+
+```text
+my_app/
+└── dist/
+    └── my_app/
+        ├── my_app.exe
+        ├── views/
+        ├── public/
+        └── storage/
+```
+
+The executable name depends on the project's package name and target platform.
+
+To run the distributed application on Windows:
+
+```powershell
+cd dist/my_app
+.\my_app.exe
+```
+
+**Note:** The `build` command currently targets the project's default executable and uses the Cargo release profile.
+
+### View available commands
 
 ```bash
 rustpress --help
 ```
 
-### Consultar a versão
+### View the installed version
 
 ```bash
 rustpress --version
 ```
 
-## Estrutura do projecto
+## Generated Project Structure
 
-O RustPress CLI gera uma estrutura inicial semelhante à seguinte:
+RustPress CLI generates an initial project structure similar to the following:
 
 ```text
-minha_app/
+my_app/
 ├── Cargo.toml
 ├── README.md
 ├── src/
@@ -102,55 +161,68 @@ minha_app/
 │   ├── css/
 │   ├── js/
 │   └── images/
+├── storage/
 └── tests/
 ```
 
-## Tecnologias
+## Technologies
 
-- **Rust:** linguagem de programação.
-- **Clap:** biblioteca para processamento de argumentos e comandos CLI.
-- **RustPress Web:** framework utilizado pelas aplicações geradas.
+- **Rust:** Systems programming language.
+- **Clap:** Command-line argument and command parsing.
+- **RustPress Web:** Web framework used by generated applications.
 
-## Desenvolvimento
+## Development
 
-Para obter o código-fonte:
+Clone the repository:
 
 ```bash
 git clone https://github.com/fabriciomichael/rustpress-cli.git
 ```
 
-Entrar no directório:
+Navigate to the project directory:
 
 ```bash
 cd rustpress-cli
 ```
 
-Executar os testes:
+Run the tests:
 
 ```bash
 cargo test
 ```
 
-Executar o CLI durante o desenvolvimento:
+Check the project:
 
 ```bash
-cargo run -- new minha_app
+cargo check
 ```
 
-Instalar a versão local:
+Format the source code:
+
+```bash
+cargo fmt
+```
+
+Run the CLI during development:
+
+```bash
+cargo run -- new my_app
+```
+
+Install the local version:
 
 ```bash
 cargo install --path . --force
 ```
 
-## Projectos relacionados
+## Related Projects
 
 - [RustPress Web](https://github.com/fabriciomichael/rustpress-web)
 
-## Licença
+## License
 
-Este projecto é distribuído sob a licença MIT. Consulta o ficheiro [LICENSE](LICENSE) para mais informações.
+This project is distributed under the MIT License. See the [LICENSE](LICENSE) file for more information.
 
-## Documentação
+## Documentation
 
-- [Configurar o main.rs](docs/CONFIGURAR-MAIN.md): guia para configurar e iniciar uma aplicação utilizando o RustPress Web.
+- [Configuring the main.rs File](docs/CONFIGURE-MAIN.md): Guide to configuring and starting a RustPress Web application.

@@ -3,7 +3,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-/// Compila o projecto Rust em modo release.
+/// Compiles the Rust project in release mode.
 fn compile_project(project_path: &Path) -> io::Result<PathBuf> {
     println!("\nCompiling project in release mode...");
 
@@ -55,7 +55,7 @@ fn compile_project(project_path: &Path) -> io::Result<PathBuf> {
     Ok(executable_path)
 }
 
-/// Copia recursivamente um directório.
+/// Recursively copies a directory.
 fn copy_directory(source: &Path, destination: &Path) -> io::Result<()> {
     fs::create_dir_all(destination)?;
 
@@ -86,7 +86,7 @@ fn copy_directory(source: &Path, destination: &Path) -> io::Result<()> {
     Ok(())
 }
 
-/// Prepara a distribuição final de um projecto RustPress.
+/// Prepares the final distribution of a RustPress project.
 pub fn build_project(project_path: &Path, include: &[PathBuf]) -> io::Result<()> {
     println!("Preparing RustPress distribution...");
     println!("Project: {}", project_path.display());
