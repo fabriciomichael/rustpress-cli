@@ -102,6 +102,7 @@ fn main() {
                 "middleware" => generator::make_middleware(&project_path, &name),
                 "model" => generator::make_model(&project_path, &name),
                 "view" => generator::make_view(&project_path, &name),
+                "all" => generator::make_all(&project_path, &name),
                 _ => {
                     eprintln!("Error: Unsupported component type '{}'.", component);
                     std::process::exit(1);
@@ -115,6 +116,7 @@ fn main() {
                         "middleware" => "Middleware",
                         "model" => "Model",
                         "view" => "View",
+                        "all" => "Components",
                         _ => unreachable!(),
                     };
 

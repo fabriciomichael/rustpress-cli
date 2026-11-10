@@ -20,14 +20,18 @@ impl TemporaryProject {
         ));
 
         fs::create_dir_all(path.join("src/controllers")).unwrap();
+        fs::create_dir_all(path.join("src/models")).unwrap();
         fs::create_dir_all(path.join("src/middleware")).unwrap();
         fs::create_dir_all(path.join("views")).unwrap();
+        fs::create_dir_all(path.join("views/pages")).unwrap();
 
         fs::write(
             path.join("Cargo.toml"),
             "[package]\nname = \"integration-test\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
         )
         .unwrap();
+
+        fs::write(path.join("src/models/mod.rs"), "// Existing models.\n").unwrap();
 
         fs::write(
             path.join("src/controllers/mod.rs"),
@@ -205,4 +209,121 @@ fn rejects_duplicate_view_without_overwriting() {
     assert!(!second.status.success());
 
     assert_eq!(fs::read_to_string(view_file).unwrap(), original_content);
+}
+
+#[test]
+fn creates_all_components_and_registers_modules() {
+    let project = TemporaryProject::new();
+
+    let output = project.run_make("all", "User");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("Components 'user' created successfully.")
+    );
+
+    let controller = project.path.join("src/controllers/user_controller.rs");
+    let middleware = project.path.join("src/middleware/user_middleware.rs");
+    let model = project.path.join("src/models/user.rs");
+    let view = project.path.join("views/pages/user.html");
+
+    assert!(controller.is_file());
+    assert!(middleware.is_file());
+    assert!(model.is_file());
+    assert!(view.is_file());
+
+    assert!(
+        fs::read_to_string(controller)
+            .unwrap()
+            .contains("pub fn index() -> Response")
+    );
+
+    assert!(
+        fs::read_to_string(middleware)
+            .unwrap()
+            .contains("MiddlewareResult::Next")
+    );
+
+    assert!(
+        fs::read_to_string(model)
+            .unwrap()
+            .contains("pub struct User")
+    );
+
+    assert_eq!(fs::read_to_string(view).unwrap(), "<h1>{{titulo}}</h1>\n");
+
+    assert!(
+        fs::read_to_string(project.path.join("src/controllers/mod.rs"))
+            .unwrap()
+            .contains("pub mod user_controller;")
+    );
+
+    assert!(
+        fs::read_to_string(project.path.join("src/middleware/mod.rs"))
+            .unwrap()
+            .contains("pub mod user_middleware;")
+    );
+
+    assert!(
+        fs::read_to_string(project.path.join("src/models/mod.rs"))
+            .unwrap()
+            .contains("pub mod user;")
+    );
+}
+
+#[test]
+fn rejects_make_all_when_any_target_exists_without_partial_generation() {
+    let project = TemporaryProject::new();
+
+    let existing_model = project.path.join("src/models/user.rs");
+    let original_model = "// Preserve this model.\n";
+
+    fs::write(&existing_model, original_model).unwrap();
+
+    let controller_modules = project.path.join("src/controllers/mod.rs");
+    let middleware_modules = project.path.join("src/middleware/mod.rs");
+    let model_modules = project.path.join("src/models/mod.rs");
+
+    let original_controllers = fs::read_to_string(&controller_modules).unwrap();
+    let original_middlewares = fs::read_to_string(&middleware_modules).unwrap();
+    let original_models = fs::read_to_string(&model_modules).unwrap();
+
+    let output = project.run_make("all", "User");
+
+    assert!(!output.status.success());
+
+    assert!(
+        !project
+            .path
+            .join("src/controllers/user_controller.rs")
+            .exists()
+    );
+
+    assert!(
+        !project
+            .path
+            .join("src/middleware/user_middleware.rs")
+            .exists()
+    );
+
+    assert!(!project.path.join("views/pages/user.html").exists());
+
+    assert_eq!(fs::read_to_string(existing_model).unwrap(), original_model);
+
+    assert_eq!(
+        fs::read_to_string(controller_modules).unwrap(),
+        original_controllers
+    );
+
+    assert_eq!(
+        fs::read_to_string(middleware_modules).unwrap(),
+        original_middlewares
+    );
+
+    assert_eq!(fs::read_to_string(model_modules).unwrap(), original_models);
 }

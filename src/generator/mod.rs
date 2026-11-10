@@ -1,3 +1,4 @@
+mod all;
 mod build;
 mod files;
 mod make;
@@ -94,6 +95,11 @@ pub fn make_view(project_path: &Path, name: &str) -> io::Result<String> {
 // Generates a new model in the RustPress project.
 pub fn make_model(project_path: &Path, name: &str) -> io::Result<String> {
     model::create_model(project_path, name)
+}
+
+/// Generates a controller, middleware, model and view together.
+pub fn make_all(project_path: &Path, name: &str) -> io::Result<String> {
+    all::create_all(project_path, name)
 }
 
 #[cfg(test)]
