@@ -33,6 +33,16 @@ enum Commands {
         bin: Option<String>,
     },
 
+    /// Generate a new application component.
+    #[command(name = "make")]
+    Make {
+        /// Type of component to generate (e.g. controller).
+        component: String,
+
+        /// Name of the component.
+        name: String,
+    },
+
     /// Diagnose the Rust environment and current RustPress project.
     Doctor,
 
@@ -78,6 +88,28 @@ fn main() {
             if let Err(error) = rustpress_cli::dev::run_dev(&project_path) {
                 eprintln!("Dev error: {}", error);
                 std::process::exit(1);
+            }
+        }
+
+        Commands::Make { component, name } => {
+            if component != "controller" {
+                eprintln!("Error: Unsupported component type '{}'.", component);
+                std::process::exit(1);
+            }
+
+            let project_path = std::env::current_dir().unwrap_or_else(|error| {
+                eprintln!("Error getting current directory: {}", error);
+                std::process::exit(1);
+            });
+
+            match generator::make_controller(&project_path, &name) {
+                Ok(module_name) => {
+                    println!("Controller '{}' created successfully.", module_name);
+                }
+                Err(error) => {
+                    eprintln!("Make error: {}", error);
+                    std::process::exit(1);
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 mod build;
 mod files;
+mod make;
 mod templates;
 mod validation;
 
@@ -66,6 +67,10 @@ pub fn build_project_with_binary(
     binary_name: Option<&str>,
 ) -> io::Result<()> {
     build::build_project_with_binary(project_path, include, binary_name)
+}
+
+pub fn make_controller(project_path: &Path, name: &str) -> io::Result<String> {
+    make::create_controller(project_path, name)
 }
 
 #[cfg(test)]
