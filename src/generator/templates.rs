@@ -8,7 +8,10 @@ edition = "2024"
 rustpress-web = "0.2.0"
 tokio = { version = "1", features = ["full"] }
 
-[workspace]
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
 "#;
 
 pub const MAIN_RS: &str = r#"

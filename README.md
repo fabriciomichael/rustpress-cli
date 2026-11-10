@@ -69,6 +69,7 @@ By default, the generated application listens on:
 http://127.0.0.1:3000
 ```
 
+
 ### Build a project for distribution
 
 RustPress CLI provides a `build` command that compiles the application in release mode and prepares an organized distribution directory.
@@ -76,38 +77,72 @@ RustPress CLI provides a `build` command that compiles the application in releas
 Run the command from the root directory of your RustPress application:
 
 ```bash
-rustpress build --include views,public,storage
+rustpress build
 ```
+
+#### Including resource directories
 
 The `--include` option accepts a comma-separated list of resource directories to include in the final distribution.
 
-For example:
+```bash
+rustpress build --include views,public,storage
+```
+
+If `--include` is omitted, RustPress CLI automatically includes the existing `views`, `public`, and `storage` directories.
+
+#### Selecting a binary target
+
+RustPress CLI supports projects with multiple Cargo binary targets.
+
+Use the `--bin` option to select a specific executable:
 
 ```bash
-rustpress build --include views,public
+rustpress build --bin admin
 ```
+
+When no binary is specified:
+
+- If the project has only one binary target, it is selected automatically.
+- If multiple binary targets exist and `default-run` is configured in `Cargo.toml`, that binary is selected automatically.
+- If multiple binary targets exist without `default-run`, the command reports the available binaries and requires `--bin`.
+
+You can configure the default executable in `Cargo.toml`:
+
+```toml
+[package]
+name = "my_app"
+version = "0.1.0"
+edition = "2024"
+default-run = "admin"
+```
+
+An explicitly provided `--bin` option always takes precedence over `default-run`.
+
+#### Build process
 
 The command performs the following operations:
 
-1. Validates the selected directories.
-2. Compiles the application using `cargo build --release`.
-3. Creates a distribution directory.
-4. Copies the selected resource directories.
-5. Copies the compiled executable into the distribution directory.
+1. Validates the selected resource directories.
+2. Resolves the requested or default Cargo binary target.
+3. Compiles the application using `cargo build --release`.
+4. Creates a distribution directory.
+5. Copies the selected resource directories.
+6. Copies the compiled executable into the distribution directory.
 
 The resulting structure looks like this:
 
 ```text
 my_app/
+├── Cargo.toml
+├── src/
+├── views/
+├── public/
 └── dist/
     └── my_app/
         ├── my_app.exe
         ├── views/
-        ├── public/
-        └── storage/
+        └── public/
 ```
-
-The executable name depends on the project's package name and target platform.
 
 To run the distributed application on Windows:
 
@@ -116,7 +151,7 @@ cd dist/my_app
 .\my_app.exe
 ```
 
-**Note:** The `build` command currently targets the project's default executable and uses the Cargo release profile.
+The executable extension depends on the target operating system.
 
 ### View available commands
 

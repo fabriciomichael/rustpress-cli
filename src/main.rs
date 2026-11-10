@@ -25,8 +25,12 @@ enum Commands {
     /// Build a RustPress project for distribution.
     Build {
         /// Directories to include in the final distribution.
-        #[arg(long, value_delimiter = ',', required = true)]
+        #[arg(long, value_delimiter = ',')]
         include: Vec<PathBuf>,
+
+        /// Name of the Cargo binary target to build.
+        #[arg(long)]
+        bin: Option<String>,
     },
 
     /// Diagnose the Rust environment and current RustPress project.
@@ -47,13 +51,15 @@ fn main() {
             }
         }
 
-        Commands::Build { include } => {
+        Commands::Build { include, bin } => {
             let project_path = std::env::current_dir().unwrap_or_else(|error| {
                 eprintln!("Error getting current directory: {}", error);
                 std::process::exit(1);
             });
 
-            if let Err(error) = generator::build_project(&project_path, &include) {
+            if let Err(error) =
+                generator::build_project_with_binary(&project_path, &include, bin.as_deref())
+            {
                 eprintln!("Build error: {}", error);
                 std::process::exit(1);
             }

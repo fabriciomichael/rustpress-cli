@@ -60,6 +60,14 @@ pub fn build_project(project_path: &Path, include: &[PathBuf]) -> io::Result<()>
     build::build_project(project_path, include)
 }
 
+pub fn build_project_with_binary(
+    project_path: &Path,
+    include: &[PathBuf],
+    binary_name: Option<&str>,
+) -> io::Result<()> {
+    build::build_project_with_binary(project_path, include, binary_name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

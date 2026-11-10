@@ -7,8 +7,6 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
 };
 
-use serde_json::Value;
-
 /// Determines whether a filesystem event belongs to a relevant project path.
 fn is_relevant_event(project_path: &Path, event: &Event) -> bool {
     event.paths.iter().any(|path| {
@@ -116,70 +114,7 @@ pub fn wait_for_change(
 
 /// Finds the main executable produced by the Cargo project.
 pub fn find_binary(project_dir: &Path) -> Result<PathBuf, String> {
-    let project_dir = project_dir
-        .canonicalize()
-        .map_err(|error| format!("Failed to resolve project directory: {}", error))?;
-
-    let output = Command::new("cargo")
-        .arg("metadata")
-        .arg("--format-version")
-        .arg("1")
-        .current_dir(&project_dir)
-        .output()
-        .map_err(|error| format!("Failed to run cargo metadata: {}", error))?;
-
-    if !output.status.success() {
-        return Err(format!(
-            "cargo metadata failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        ));
-    }
-
-    let metadata: Value = serde_json::from_slice(&output.stdout)
-        .map_err(|error| format!("Failed to parse cargo metadata: {}", error))?;
-
-    let expected_manifest = project_dir
-        .join("Cargo.toml")
-        .canonicalize()
-        .map_err(|error| format!("Failed to resolve Cargo.toml: {}", error))?;
-
-    let package = metadata["packages"]
-        .as_array()
-        .and_then(|packages| {
-            packages.iter().find(|package| {
-                package["manifest_path"]
-                    .as_str()
-                    .and_then(|path| Path::new(path).canonicalize().ok())
-                    .is_some_and(|path| path == expected_manifest)
-            })
-        })
-        .ok_or_else(|| "Project package not found in Cargo metadata".to_string())?;
-
-    let binary_name = package["targets"]
-        .as_array()
-        .and_then(|targets| {
-            targets.iter().find(|target| {
-                target["kind"]
-                    .as_array()
-                    .is_some_and(|kinds| kinds.iter().any(|kind| kind == "bin"))
-            })
-        })
-        .and_then(|target| target["name"].as_str())
-        .ok_or_else(|| "No binary target found in Cargo project".to_string())?;
-
-    let target_directory = metadata["target_directory"]
-        .as_str()
-        .ok_or_else(|| "Cargo metadata has no target directory".to_string())?;
-
-    let binary_path = PathBuf::from(target_directory)
-        .join("debug")
-        .join(if cfg!(windows) {
-            format!("{}.exe", binary_name)
-        } else {
-            binary_name.to_string()
-        });
-
-    Ok(binary_path)
+    crate::cargo_metadata::find_binary(project_dir, "debug")
 }
 
 /// Builds the project and returns the generated executable path.
