@@ -28,6 +28,12 @@ enum Commands {
         #[arg(long, value_delimiter = ',', required = true)]
         include: Vec<PathBuf>,
     },
+
+    /// Diagnose the Rust environment and current RustPress project.
+    Doctor,
+
+    /// Run the project in development mode with automatic restarts.
+    Dev,
 }
 
 fn main() {
@@ -49,6 +55,22 @@ fn main() {
 
             if let Err(error) = generator::build_project(&project_path, &include) {
                 eprintln!("Build error: {}", error);
+                std::process::exit(1);
+            }
+        }
+
+        Commands::Doctor => {
+            rustpress_cli::doctor::run_diagnostics();
+        }
+
+        Commands::Dev => {
+            let project_path = std::env::current_dir().unwrap_or_else(|error| {
+                eprintln!("Error getting current directory: {}", error);
+                std::process::exit(1);
+            });
+
+            if let Err(error) = rustpress_cli::dev::run_dev(&project_path) {
+                eprintln!("Dev error: {}", error);
                 std::process::exit(1);
             }
         }
