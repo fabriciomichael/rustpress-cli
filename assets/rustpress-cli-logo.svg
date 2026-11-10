@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+  <title id="title">RustPress CLI</title>
+  <desc id="desc">RustPress CLI logo with an orange terminal-inspired emblem and white and orange wordmark.</desc>
+  <defs>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff9b45"/>
+      <stop offset="1" stop-color="#f05a24"/>
+    </linearGradient>
+  </defs>
+  <!-- Terminal-inspired emblem -->
+  <rect x="24" y="34" width="252" height="252" rx="54" fill="#17191d" stroke="url(#orange)" stroke-width="12"/>
+  <path d="M82 105 L143 160 L82 215" fill="none" stroke="url(#orange)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M157 216 H217" fill="none" stroke="#f4f5f7" stroke-width="22" stroke-linecap="round"/>
+  <path d="M172 82 H218" fill="none" stroke="#f4f5f7" stroke-width="10" stroke-linecap="round" opacity=".9"/>
+  <!-- Wordmark -->
+  <text x="326" y="166" fill="#f4f5f7" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="112" font-weight="750" letter-spacing="-5">Rust</text>
+  <text x="548" y="166" fill="#ff792f" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="112" font-weight="750" letter-spacing="-5">Press</text>
+  <path d="M330 204 H1040" stroke="#41454d" stroke-width="3"/>
+  <text x="334" y="263" fill="#aeb4bf" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="32" font-weight="650" letter-spacing="8">COMMAND LINE TOOL</text>
+  <text x="1040" y="258" fill="#ff792f" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="54" font-weight="800" text-anchor="end">CLI</text>
+</svg>

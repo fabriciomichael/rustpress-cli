@@ -1,112 +1,179 @@
-# RustPress CLI
+<div align="center">
+  <img src="assets/rustpress-cli-logo.svg" alt="RustPress CLI" width="720">
+  <br>
+  <strong>The official command-line interface for the RustPress web framework.</strong>
+  <br><br>
+  <a href="https://crates.io/crates/rustpress-cli">crates.io</a> ·
+  <a href="https://github.com/fabriciomichael/rustpress-cli">GitHub</a> ·
+  <a href="https://github.com/fabriciomichael/rustpress-web">RustPress Web</a>
+</div>
 
-**The official command-line interface for the RustPress web framework.**
+---
 
-RustPress CLI is a command-line tool written in Rust that simplifies the creation and distribution of web applications built with [RustPress Web](https://github.com/fabriciomichael/rustpress-web).
+RustPress CLI is a command-line tool written in Rust that helps developers create, run, diagnose, and prepare applications built with [RustPress Web](https://github.com/fabriciomichael/rustpress-web).
 
-It automates project scaffolding, generates the initial application structure, and provides a production build command to prepare applications for distribution.
+It provides project scaffolding, component generators, a development watcher with automatic restarts, environment diagnostics, and production distribution builds.
 
 ## Features
 
-- Automatic RustPress project creation.
-- Project directory and file generation.
-- Initial application configuration.
-- Organized routes and controllers.
-- Models, middleware, and configuration modules.
-- Project name validation.
-- Protection against reserved Windows names.
-- Production compilation in release mode.
-- Selective inclusion of resource directories in the final distribution.
-- Automatic organization of the executable and application resources.
+- Create a new RustPress application with a ready-to-use project structure.
+- Generate controllers, middleware, models, and HTML views.
+- Generate a complete set of components with one `make all` command.
+- Run applications in development mode and restart them after relevant file changes.
+- Diagnose the Rust toolchain and the current RustPress project.
+- Compile applications in release mode and assemble a distribution directory.
+- Select the binary target and resource directories included in a distribution.
+- Validate project names and prevent accidental overwrites during component generation.
 
 ## Requirements
 
-- [Rust](https://www.rust-lang.org/tools/install)
-- Cargo
-- [RustPress Web](https://github.com/fabriciomichael/rustpress-web) (automatically added as a dependency to generated projects)
+- [Rust](https://www.rust-lang.org/tools/install) and Cargo.
+- A RustPress Web project for commands that operate on an existing application.
+- The `rustpress-web` dependency is added automatically to projects created with `rustpress new`.
 
 ## Installation
 
-Install RustPress CLI using Cargo:
+Install the published CLI with Cargo:
+
+```bash
+cargo install rustpress-cli
+```
+
+To install a specific version:
 
 ```bash
 cargo install rustpress-cli --version 0.2.0
 ```
 
-After installation, the `rustpress` command will be available in your terminal.
+Confirm the installation:
 
-## Usage
+```bash
+rustpress --version
+rustpress --help
+```
 
-### Create a new project
+## Quick start
+
+Create an application:
+
+```bash
+rustpress new my_app
+cd my_app
+```
+
+Start it in development mode:
+
+```bash
+rustpress dev
+```
+
+The generated application listens at `http://127.0.0.1:3000` by default. Open that address in your browser.
+
+## Commands
+
+| Command | Description |
+| --- | --- |
+| `rustpress new <name>` | Create a new RustPress project. |
+| `rustpress build` | Build and prepare a production distribution. |
+| `rustpress dev` | Build, run, watch files, and restart the application after changes. |
+| `rustpress doctor` | Diagnose Rust, Cargo, and the current project. |
+| `rustpress make <component> <name>` | Generate a project component. |
+| `rustpress --help` | Display CLI help. |
+| `rustpress --version` | Display the installed version. |
+
+See the [CLI command reference](docs/COMMANDS.md) for options, examples, and generated file paths.
+
+## Create a project
 
 ```bash
 rustpress new my_app
 ```
 
-You can also specify a destination directory:
+Choose a destination directory with `--path`:
 
 ```bash
 rustpress new my_app --path ./projects
 ```
 
-### Run the application
-
-Navigate to the generated project:
+Then enter the generated directory and start the application:
 
 ```bash
 cd my_app
+rustpress dev
 ```
 
-Start the development server:
+## Generate components
+
+Run `make` from the root of a generated RustPress project.
 
 ```bash
-cargo run
+rustpress make controller UserController
+rustpress make middleware AuthMiddleware
+rustpress make model User
+rustpress make view UserProfile
 ```
 
-By default, the generated application listens on:
+Generate a controller, middleware, model, and view together:
 
-```text
-http://127.0.0.1:3000
+```bash
+rustpress make all User
 ```
 
+The combined generator creates the corresponding files and registers the Rust modules where applicable. It validates all targets before writing and rolls back generated files if the operation fails.
 
-### Build a project for distribution
+## Development mode
 
-RustPress CLI provides a `build` command that compiles the application in release mode and prepares an organized distribution directory.
+```bash
+rustpress dev
+```
 
-Run the command from the root directory of your RustPress application:
+The development command builds and starts the application, watches the project recursively, and restarts the process when relevant files change. Changes under `target`, `dist`, and `.git` are ignored. If a rebuild fails, the watcher remains active and waits for another change. Press `Ctrl+C` to stop the development process.
+
+## Diagnose a project
+
+Run this command from the project root:
+
+```bash
+rustpress doctor
+```
+
+The diagnostic checks include:
+
+- Availability and versions of `rustc` and Cargo.
+- Presence of `Cargo.toml`.
+- Presence of the `rustpress-web` dependency.
+- Essential project directories: `src`, `views`, `public`, and `storage`.
+
+Warnings about missing project components do not necessarily mean the Rust toolchain itself is broken.
+
+## Build for distribution
+
+Run from the root of the application:
 
 ```bash
 rustpress build
 ```
 
-#### Including resource directories
-
-The `--include` option accepts a comma-separated list of resource directories to include in the final distribution.
+When `--include` is omitted, the CLI includes whichever of these directories exist: `views`, `public`, and `storage`. Specify a comma-separated list to choose resource directories explicitly:
 
 ```bash
 rustpress build --include views,public,storage
 ```
 
-If `--include` is omitted, RustPress CLI automatically includes the existing `views`, `public`, and `storage` directories.
-
-#### Selecting a binary target
-
-RustPress CLI supports projects with multiple Cargo binary targets.
-
-Use the `--bin` option to select a specific executable:
+If the project defines multiple Cargo binary targets, select one with `--bin`:
 
 ```bash
 rustpress build --bin admin
 ```
 
-When no binary is specified:
+Binary selection follows these rules:
 
-- If the project has only one binary target, it is selected automatically.
-- If multiple binary targets exist and `default-run` is configured in `Cargo.toml`, that binary is selected automatically.
-- If multiple binary targets exist without `default-run`, the command reports the available binaries and requires `--bin`.
+1. An explicit `--bin` value takes precedence.
+2. If there is one binary target, it is selected automatically.
+3. If there are multiple targets and `default-run` is set in `Cargo.toml`, that target is selected.
+4. If multiple targets exist without `default-run`, specify `--bin`.
 
-You can configure the default executable in `Cargo.toml`:
+Example `Cargo.toml` configuration:
 
 ```toml
 [package]
@@ -116,20 +183,9 @@ edition = "2024"
 default-run = "admin"
 ```
 
-An explicitly provided `--bin` option always takes precedence over `default-run`.
+The CLI compiles with `cargo build --release`, then copies the selected executable and resource directories into `dist/<project-directory-name>/`.
 
-#### Build process
-
-The command performs the following operations:
-
-1. Validates the selected resource directories.
-2. Resolves the requested or default Cargo binary target.
-3. Compiles the application using `cargo build --release`.
-4. Creates a distribution directory.
-5. Copies the selected resource directories.
-6. Copies the compiled executable into the distribution directory.
-
-The resulting structure looks like this:
+Example output:
 
 ```text
 my_app/
@@ -144,30 +200,11 @@ my_app/
         └── public/
 ```
 
-To run the distributed application on Windows:
+The executable extension depends on the target operating system. The build command prepares the application files; it does not create an installer.
 
-```powershell
-cd dist/my_app
-.\my_app.exe
-```
+## Generated project structure
 
-The executable extension depends on the target operating system.
-
-### View available commands
-
-```bash
-rustpress --help
-```
-
-### View the installed version
-
-```bash
-rustpress --version
-```
-
-## Generated Project Structure
-
-RustPress CLI generates an initial project structure similar to the following:
+A newly generated project includes a structure similar to this:
 
 ```text
 my_app/
@@ -188,23 +225,22 @@ my_app/
 │   └── config/
 │       └── mod.rs
 ├── views/
+│   ├── errors/
 │   ├── layouts/
 │   ├── pages/
-│   │   └── home.html
 │   └── partials/
 ├── public/
 │   ├── css/
-│   ├── js/
-│   └── images/
+│   ├── images/
+│   └── js/
 ├── storage/
 └── tests/
 ```
 
-## Technologies
+## Documentation
 
-- **Rust:** Systems programming language.
-- **Clap:** Command-line argument and command parsing.
-- **RustPress Web:** Web framework used by generated applications.
+- [CLI command reference](docs/COMMANDS.md)
+- [Configuring `main.rs` for RustPress Web](docs/CONFIGURE-MAIN.md)
 
 ## Development
 
@@ -212,52 +248,35 @@ Clone the repository:
 
 ```bash
 git clone https://github.com/fabriciomichael/rustpress-cli.git
-```
-
-Navigate to the project directory:
-
-```bash
 cd rustpress-cli
 ```
 
-Run the tests:
+Run the test suite and checks:
 
 ```bash
-cargo test
-```
-
-Check the project:
-
-```bash
+cargo fmt --check
 cargo check
+cargo test
+cargo clippy --all-targets --all-features -- -D warnings
 ```
 
-Format the source code:
+Run the CLI locally:
 
 ```bash
-cargo fmt
-```
-
-Run the CLI during development:
-
-```bash
+cargo run -- --help
 cargo run -- new my_app
 ```
 
-Install the local version:
+Install the local checkout:
 
 ```bash
 cargo install --path . --force
 ```
 
-## Related Projects
+## Related project
 
 - [RustPress Web](https://github.com/fabriciomichael/rustpress-web)
 
 ## License
 
-This project is distributed under the MIT License. See the [LICENSE](LICENSE) file for more information.
-
-## Documentation
-
-- [Configuring the main.rs File](docs/CONFIGURE-MAIN.md): Guide to configuring and starting a RustPress Web application.
+RustPress CLI is distributed under the MIT License. See [LICENSE](LICENSE) for details.
