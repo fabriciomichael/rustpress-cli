@@ -238,10 +238,10 @@ pub fn run_dev(project_dir: &Path) -> Result<(), String> {
                 println!("\nChanges detected. Restarting application...");
 
                 // Stop the previous process before rebuilding.
-                if let Some(ref mut child) = server {
-                    if let Err(error) = stop_server(child) {
-                        break Err(error);
-                    }
+                if let Some(ref mut child) = server
+                    && let Err(error) = stop_server(child)
+                {
+                    break Err(error);
                 }
 
                 server = None;
