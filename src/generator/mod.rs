@@ -1,17 +1,22 @@
 mod build;
 mod files;
 mod make;
+mod middleware;
+mod model;
 mod templates;
 mod validation;
+mod view;
 
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
+// Creates a new RustPress project in the current directory.
 pub fn create_project(name: &str) -> io::Result<()> {
     create_project_at(name, Path::new("."))
 }
 
+// Creates a new RustPress project at the specified base path.
 pub fn create_project_at(name: &str, base_path: &Path) -> io::Result<()> {
     validation::validate_project_name(name)?;
 
@@ -57,10 +62,12 @@ pub fn create_project_at(name: &str, base_path: &Path) -> io::Result<()> {
     Ok(())
 }
 
+// Builds the RustPress project and includes the specified directories in the distribution.
 pub fn build_project(project_path: &Path, include: &[PathBuf]) -> io::Result<()> {
     build::build_project(project_path, include)
 }
 
+// Builds the RustPress project and includes the specified directories in the distribution.
 pub fn build_project_with_binary(
     project_path: &Path,
     include: &[PathBuf],
@@ -69,8 +76,24 @@ pub fn build_project_with_binary(
     build::build_project_with_binary(project_path, include, binary_name)
 }
 
+// Generates a new controller in the RustPress project.
 pub fn make_controller(project_path: &Path, name: &str) -> io::Result<String> {
     make::create_controller(project_path, name)
+}
+
+// Generates a new middleware component in the RustPress project.
+pub fn make_middleware(project_path: &Path, name: &str) -> io::Result<String> {
+    middleware::create_middleware(project_path, name)
+}
+
+// Generates a new view in the RustPress project.
+pub fn make_view(project_path: &Path, name: &str) -> io::Result<String> {
+    view::create_view(project_path, name)
+}
+
+// Generates a new model in the RustPress project.
+pub fn make_model(project_path: &Path, name: &str) -> io::Result<String> {
+    model::create_model(project_path, name)
 }
 
 #[cfg(test)]

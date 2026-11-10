@@ -36,7 +36,7 @@ enum Commands {
     /// Generate a new application component.
     #[command(name = "make")]
     Make {
-        /// Type of component to generate (e.g. controller).
+        /// Type of component to generate (e.g. controller, middleware or model).
         component: String,
 
         /// Name of the component.
@@ -92,19 +92,33 @@ fn main() {
         }
 
         Commands::Make { component, name } => {
-            if component != "controller" {
-                eprintln!("Error: Unsupported component type '{}'.", component);
-                std::process::exit(1);
-            }
-
             let project_path = std::env::current_dir().unwrap_or_else(|error| {
                 eprintln!("Error getting current directory: {}", error);
                 std::process::exit(1);
             });
 
-            match generator::make_controller(&project_path, &name) {
+            let result = match component.as_str() {
+                "controller" => generator::make_controller(&project_path, &name),
+                "middleware" => generator::make_middleware(&project_path, &name),
+                "model" => generator::make_model(&project_path, &name),
+                "view" => generator::make_view(&project_path, &name),
+                _ => {
+                    eprintln!("Error: Unsupported component type '{}'.", component);
+                    std::process::exit(1);
+                }
+            };
+
+            match result {
                 Ok(module_name) => {
-                    println!("Controller '{}' created successfully.", module_name);
+                    let label = match component.as_str() {
+                        "controller" => "Controller",
+                        "middleware" => "Middleware",
+                        "model" => "Model",
+                        "view" => "View",
+                        _ => unreachable!(),
+                    };
+
+                    println!("{} '{}' created successfully.", label, module_name);
                 }
                 Err(error) => {
                     eprintln!("Make error: {}", error);
