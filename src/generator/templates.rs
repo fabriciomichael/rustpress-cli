@@ -7,11 +7,117 @@ edition = "2024"
 [dependencies]
 rustpress-web = "0.2.0"
 tokio = { version = "1", features = ["full"] }
+dotenvy = "0.15"
 
 [profile.release]
 lto = true
 codegen-units = 1
 panic = "abort"
+"#;
+
+pub const SERVER_CONFIG_RS: &str = r#"
+use std::env;
+
+#[derive(Debug, Clone)]
+pub struct ServerConfig {
+    pub host: String,
+    pub port: u16,
+}
+
+impl ServerConfig {
+    pub fn from_env() -> Self {
+        let host = env::var("RUSTPRESS_HOST")
+            .unwrap_or_else(|_| "127.0.0.1".to_string());
+
+        let port = env::var("RUSTPRESS_PORT")
+            .ok()
+            .and_then(|value| value.parse::<u16>().ok())
+            .unwrap_or(3000);
+
+        Self { host, port }
+    }
+
+    pub fn address(&self) -> String {
+        format!("{}:{}", self.host, self.port)
+    }
+}
+"#;
+
+pub const DATABASE_CONFIG_RS: &str = r#"
+use std::env;
+
+#[derive(Debug, Clone)]
+pub struct DatabaseConfig {
+    pub driver: String,
+    pub host: String,
+    pub port: u16,
+    pub name: String,
+    pub user: String,
+    pub password: String,
+}
+
+impl DatabaseConfig {
+    pub fn from_env() -> Self {
+        Self {
+            driver: env::var("DB_DRIVER")
+                .unwrap_or_else(|_| "mysql".to_string()),
+
+            host: env::var("DB_HOST")
+                .unwrap_or_else(|_| "127.0.0.1".to_string()),
+
+            port: env::var("DB_PORT")
+                .ok()
+                .and_then(|value| value.parse::<u16>().ok())
+                .unwrap_or(3306),
+
+            name: env::var("DB_NAME")
+                .unwrap_or_else(|_| "rustpress_db".to_string()),
+
+            user: env::var("DB_USER")
+                .unwrap_or_else(|_| "root".to_string()),
+
+            password: env::var("DB_PASSWORD")
+                .unwrap_or_default(),
+        }
+    }
+
+    pub fn connection_string(&self) -> String {
+        format!(
+            "mysql://{}:{}@{}:{}/{}",
+            self.user,
+            self.password,
+            self.host,
+            self.port,
+            self.name
+        )
+    }
+
+    pub fn is_mysql(&self) -> bool {
+        self.driver.eq_ignore_ascii_case("mysql")
+    }
+}
+"#;
+
+pub const CONFIG_MOD_RS: &str = r#"
+pub mod server;
+pub mod database;
+
+pub use server::ServerConfig;
+pub use database::DatabaseConfig;
+"#;
+
+pub const ENV_EXAMPLE: &str = r#"
+# RustPress Server
+RUSTPRESS_HOST=127.0.0.1
+RUSTPRESS_PORT=3000
+
+# Database
+DB_DRIVER=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=rustpress_db
+DB_USER=root
+DB_PASSWORD=
 "#;
 
 pub const MAIN_RS: &str = r#"
@@ -22,16 +128,27 @@ mod middleware;
 mod config;
 
 use rustpress_web::App;
+use config::DatabaseConfig;
+use config::ServerConfig;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    dotenvy::dotenv().ok();
+
+    let server_config = ServerConfig::from_env();
+    let address = server_config.address();
+
+    let database_config = DatabaseConfig::from_env();
+    let _is_mysql = database_config.is_mysql();
+    let _database_url = database_config.connection_string();
+
     let mut app = App::new();
 
     routes::web::register(&mut app)?;
 
-    println!("RustPress running at http://127.0.0.1:3000");
+    println!("RustPress running at http://{}", address);
 
-    app.listen("127.0.0.1:3000").await?;
+    app.listen(&address).await?;
 
     Ok(())
 }

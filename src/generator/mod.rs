@@ -127,7 +127,14 @@ mod tests {
         let project_path = base_path.join("test-project");
 
         assert!(project_path.join("Cargo.toml").exists());
+        assert!(project_path.join(".gitignore").exists());
+        assert!(project_path.join(".env.example").exists());
+
         assert!(project_path.join("src/main.rs").exists());
+        assert!(project_path.join("src/config/mod.rs").exists());
+        assert!(project_path.join("src/config/server.rs").exists());
+        assert!(project_path.join("src/config/database.rs").exists());
+
         assert!(project_path.join("src/routes/web.rs").exists());
         assert!(
             project_path

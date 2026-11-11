@@ -13,7 +13,22 @@ pub fn write_project_files(root: &Path, name: &str) -> io::Result<()> {
 
     fs::write(root.join("README.md"), readme.trim_start())?;
 
+    fs::write(
+        root.join(".gitignore"),
+        "/target/\n.env\n.env.*\n!.env.example\n*.log\n",
+    )?;
+
     fs::write(root.join("src/main.rs"), templates::MAIN_RS.trim_start())?;
+
+    fs::write(
+        root.join("src/config/server.rs"),
+        templates::SERVER_CONFIG_RS.trim_start(),
+    )?;
+
+    fs::write(
+        root.join("src/config/database.rs"),
+        templates::DATABASE_CONFIG_RS.trim_start(),
+    )?;
 
     fs::write(
         root.join("src/routes/web.rs"),
@@ -53,7 +68,12 @@ pub fn write_project_files(root: &Path, name: &str) -> io::Result<()> {
 
     fs::write(
         root.join("src/config/mod.rs"),
-        templates::EMPTY_MOD_RS.trim_start(),
+        templates::CONFIG_MOD_RS.trim_start(),
+    )?;
+
+    fs::write(
+        root.join(".env.example"),
+        templates::ENV_EXAMPLE.trim_start(),
     )?;
 
     fs::write(
