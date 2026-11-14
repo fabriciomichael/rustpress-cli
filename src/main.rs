@@ -103,6 +103,7 @@ fn main() {
                 "model" => generator::make_model(&project_path, &name),
                 "view" => generator::make_view(&project_path, &name),
                 "all" => generator::make_all(&project_path, &name),
+                "resource" => generator::make_resource(&project_path, &name),
                 _ => {
                     eprintln!("Error: Unsupported component type '{}'.", component);
                     std::process::exit(1);
@@ -117,6 +118,7 @@ fn main() {
                         "model" => "Model",
                         "view" => "View",
                         "all" => "Components",
+                        "resource" => "Resource",
                         _ => unreachable!(),
                     };
 

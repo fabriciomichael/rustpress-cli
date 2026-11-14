@@ -4,6 +4,7 @@ mod files;
 mod make;
 mod middleware;
 mod model;
+mod resource;
 mod templates;
 mod validation;
 mod view;
@@ -100,6 +101,11 @@ pub fn make_model(project_path: &Path, name: &str) -> io::Result<String> {
 /// Generates a controller, middleware, model and view together.
 pub fn make_all(project_path: &Path, name: &str) -> io::Result<String> {
     all::create_all(project_path, name)
+}
+
+/// Generates a complete resource with its controller, model, routes and views.
+pub fn make_resource(project_path: &Path, name: &str) -> io::Result<String> {
+    resource::create_resource(project_path, name)
 }
 
 #[cfg(test)]

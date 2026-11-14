@@ -14,6 +14,13 @@ categories = ["command-line-utilities", "development-tools"]
 name = "rustpress"
 path = "src/main.rs"
 
+[profile.release]
+opt-level = 3        # Nível máximo de otimização de velocidade (padrão no release)
+lto = true           # Link-Time Optimization: otimiza o código entre diferentes crates
+codegen-units = 1    # Compila o projeto numa única unidade, permitindo melhores otimizações
+strip = true         # Remove símbolos de depuração para reduzir o tamanho do binário
+panic = "abort"      # Remove o código de unwinding em caso de erro fatal (binário mais pequeno e rápido)
+
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 notify = "8"
