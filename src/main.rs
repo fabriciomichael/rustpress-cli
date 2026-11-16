@@ -51,6 +51,9 @@ enum Commands {
 
     /// List all registered project routes.
     Routes,
+
+    /// Check the project structure and configuration.
+    Check,
 }
 
 fn main() {
@@ -143,6 +146,12 @@ fn main() {
                     eprintln!("Make error: {}", error);
                     std::process::exit(1);
                 }
+            }
+        }
+
+        Commands::Check => {
+            if !rustpress_cli::check::run_checks() {
+                std::process::exit(1);
             }
         }
     }
