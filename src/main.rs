@@ -48,6 +48,9 @@ enum Commands {
 
     /// Run the project in development mode with automatic restarts.
     Dev,
+
+    /// List all registered project routes.
+    Routes,
 }
 
 fn main() {
@@ -87,6 +90,18 @@ fn main() {
 
             if let Err(error) = rustpress_cli::dev::run_dev(&project_path) {
                 eprintln!("Dev error: {}", error);
+                std::process::exit(1);
+            }
+        }
+
+        Commands::Routes => {
+            let project_path = std::env::current_dir().unwrap_or_else(|error| {
+                eprintln!("Error getting current directory: {}", error);
+                std::process::exit(1);
+            });
+
+            if let Err(error) = rustpress_cli::routes::list_routes(&project_path) {
+                eprintln!("Routes error: {}", error);
                 std::process::exit(1);
             }
         }

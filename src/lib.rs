@@ -4,3 +4,5 @@ pub mod doctor;
 pub mod generator;
 
 pub use generator::create_project;
+
+pub mod routes;
