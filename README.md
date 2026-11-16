@@ -1,4 +1,4 @@
-<div align="center">
+ <div align="center">
   <img src="assets/rustpress-cli-logo.svg" alt="RustPress CLI" width="720">
   <br>
   <strong>The official command-line interface for the RustPress web framework.</strong>
@@ -12,15 +12,18 @@
 
 RustPress CLI is a command-line tool written in Rust that helps developers create, run, diagnose, and prepare applications built with [RustPress Web](https://github.com/fabriciomichael/rustpress-web).
 
-It provides project scaffolding, component generators, a development watcher with automatic restarts, environment diagnostics, and production distribution builds.
+It provides project scaffolding, component and resource generators, a development watcher with automatic restarts, environment diagnostics, route inspection, project validation, and production distribution builds.
 
 ## Features
 
 - Create a new RustPress application with a ready-to-use project structure.
 - Generate controllers, middleware, models, and HTML views.
 - Generate a complete set of components with one `make all` command.
+- Generate CRUD-oriented resources with controllers, models, routes, and HTML views using `make resource`.
 - Run applications in development mode and restart them after relevant file changes.
 - Diagnose the Rust toolchain and the current RustPress project.
+- List registered application routes.
+- Validate project structure, configuration, and compilation.
 - Compile applications in release mode and assemble a distribution directory.
 - Select the binary target and resource directories included in a distribution.
 - Validate project names and prevent accidental overwrites during component generation.
@@ -74,10 +77,12 @@ The generated application listens at `http://127.0.0.1:3000` by default. Open th
 | Command | Description |
 | --- | --- |
 | `rustpress new <name>` | Create a new RustPress project. |
-| `rustpress build` | Build and prepare a production distribution. |
+| `rustpress make <component> <name>` | Generate a project component or resource. |
 | `rustpress dev` | Build, run, watch files, and restart the application after changes. |
 | `rustpress doctor` | Diagnose Rust, Cargo, and the current project. |
-| `rustpress make <component> <name>` | Generate a project component. |
+| `rustpress routes` | List registered application routes. |
+| `rustpress check` | Validate project structure, configuration, and compilation. |
+| `rustpress build` | Build and prepare a production distribution. |
 | `rustpress --help` | Display CLI help. |
 | `rustpress --version` | Display the installed version. |
 
@@ -106,6 +111,8 @@ rustpress dev
 
 Run `make` from the root of a generated RustPress project.
 
+Generate individual components:
+
 ```bash
 rustpress make controller UserController
 rustpress make middleware AuthMiddleware
@@ -113,13 +120,38 @@ rustpress make model User
 rustpress make view UserProfile
 ```
 
+### Generate all components
+
 Generate a controller, middleware, model, and view together:
 
 ```bash
 rustpress make all User
 ```
 
-The combined generator creates the corresponding files and registers the Rust modules where applicable. It validates all targets before writing and rolls back generated files if the operation fails.
+The combined generator creates the corresponding files and registers the Rust modules where applicable. It validates all targets before writing and attempts to roll back generated changes if the operation fails.
+
+### Generate a resource
+
+Generate a complete CRUD-oriented resource structure:
+
+```bash
+rustpress make resource Product
+```
+
+The resource generator creates:
+
+- A controller.
+- A model.
+- A resource routes module.
+- Four HTML views: `index`, `show`, `create`, and `edit`.
+- Automatic Rust module registration.
+- Automatic registration of resource routes in `src/routes/web.rs`.
+
+The generated routes cover listing, displaying, creating, storing, editing, updating, and deleting resources.
+
+**Note:** The generated `store`, `update`, and `destroy` handlers are placeholders that return HTTP 501. Database persistence and business logic must be implemented by the application developer.
+
+See the [CLI command reference](docs/COMMANDS.md) for the complete generated file structure.
 
 ## Development mode
 
@@ -127,7 +159,9 @@ The combined generator creates the corresponding files and registers the Rust mo
 rustpress dev
 ```
 
-The development command builds and starts the application, watches the project recursively, and restarts the process when relevant files change. Changes under `target`, `dist`, and `.git` are ignored. If a rebuild fails, the watcher remains active and waits for another change. Press `Ctrl+C` to stop the development process.
+The development command builds and starts the application, watches the project recursively, and restarts the process when relevant files change. Changes under `target`, `dist`, and `.git` are ignored. If a rebuild fails, the watcher remains active and waits for another change.
+
+Press `Ctrl+C` to stop the development process.
 
 ## Diagnose a project
 
@@ -145,6 +179,36 @@ The diagnostic checks include:
 - Essential project directories: `src`, `views`, `public`, and `storage`.
 
 Warnings about missing project components do not necessarily mean the Rust toolchain itself is broken.
+
+## Inspect application routes
+
+List the routes registered in the current RustPress application:
+
+```bash
+rustpress routes
+```
+
+Run this command from the project root to inspect the application's registered routes.
+
+## Validate a project
+
+Run the project validation command from the application root:
+
+```bash
+rustpress check
+```
+
+The command checks:
+
+- Whether `Cargo.toml` exists and contains valid TOML.
+- Whether the manifest contains a `[package]` section.
+- Whether the required project directories exist.
+- Whether the required application files exist.
+- Whether `rustpress-web` is listed under `[dependencies]`.
+
+If the structural checks pass, the CLI runs `cargo check` to verify that the project compiles.
+
+The command reports validation errors and returns a non-zero exit code when a check fails.
 
 ## Build for distribution
 

@@ -42,8 +42,17 @@ Supported component types:
 | `model` | `rustpress make model User` | `src/models/user.rs` and module registration. |
 | `view` | `rustpress make view UserProfile` | `views/pages/user_profile.html`. |
 | `all` | `rustpress make all User` | A controller, middleware, model, and view for the supplied name. |
+| `resource` | `rustpress make resource Product` | A controller, model, resource routes, four HTML views, and automatic module and route registration. |
 
-For `make all User`, the generated paths are:
+### `make all`
+
+Generates a controller, middleware, model, and view for the supplied name.
+
+```bash
+rustpress make all User
+```
+
+Generated paths:
 
 ```text
 src/controllers/user_controller.rs
@@ -53,6 +62,34 @@ views/pages/user.html
 ```
 
 The generator also updates the relevant `mod.rs` files for Rust modules. Names are normalized to snake_case for file and module names. Existing targets are not overwritten. The combined `all` operation validates targets first and attempts to roll back its generated changes if a later step fails.
+
+### `make resource`
+
+Generates a complete CRUD-oriented resource structure.
+
+```bash
+rustpress make resource Product
+```
+
+For `Product`, the generator creates:
+
+```text
+src/controllers/product_controller.rs
+src/models/product.rs
+src/routes/products.rs
+views/products/index.html
+views/products/show.html
+views/products/create.html
+views/products/edit.html
+```
+
+The generator also registers the Rust modules in their respective `mod.rs` files and adds the resource route registration to `src/routes/web.rs`.
+
+The generated routes cover listing, displaying, creating, storing, editing, updating, and deleting resources.
+
+**Note:** The `store`, `update`, and `destroy` controller handlers are placeholders that return HTTP 501. Persistence logic must be implemented by the application developer.
+
+Existing files, module declarations, and route registrations are protected against accidental overwrites. The generator attempts to roll back its changes if generation fails.
 
 ## `rustpress dev`
 
@@ -82,6 +119,36 @@ Checks include:
 - The `src`, `views`, `public`, and `storage` directories.
 
 The command reports successful checks, errors, and project warnings in the terminal.
+
+## `rustpress routes`
+
+Lists the routes registered in the current RustPress application.
+
+```bash
+rustpress routes
+```
+
+Run this command from the application root directory.
+
+## `rustpress check`
+
+Validates the structure and configuration of the current RustPress project.
+
+```bash
+rustpress check
+```
+
+The command checks:
+
+- Whether `Cargo.toml` exists and contains valid TOML.
+- Whether the manifest contains a `[package]` section.
+- Whether the required project directories exist: `src`, `views`, `public`, and `storage`.
+- Whether the required application files exist: `src/main.rs` and `src/routes`.
+- Whether `rustpress-web` is listed under `[dependencies]`.
+
+If the structural checks pass, the CLI runs `cargo check` to verify that the project compiles.
+
+The command reports errors and returns a non-zero exit code when validation fails.
 
 ## `rustpress build`
 
