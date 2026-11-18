@@ -1,9 +1,13 @@
 mod all;
 mod build;
+mod components;
+mod error;
 mod files;
+mod layout;
 mod make;
 mod middleware;
 mod model;
+mod partial;
 mod resource;
 mod templates;
 mod validation;
@@ -40,6 +44,7 @@ pub fn create_project_at(name: &str, base_path: &Path) -> io::Result<()> {
     fs::create_dir_all(project_path.join("views/layouts"))?;
     fs::create_dir_all(project_path.join("views/pages"))?;
     fs::create_dir_all(project_path.join("views/partials"))?;
+    fs::create_dir_all(project_path.join("views/components"))?;
     fs::create_dir_all(project_path.join("views/errors"))?;
 
     fs::create_dir_all(project_path.join("public/css"))?;
@@ -98,6 +103,21 @@ pub fn make_model(project_path: &Path, name: &str) -> io::Result<String> {
     model::create_model(project_path, name)
 }
 
+/// Generates a new partial in the RustPress project.
+pub fn make_partial(project_path: &Path, name: &str) -> io::Result<String> {
+    partial::create_partial(project_path, name)
+}
+
+/// Generates a reusable HTML component in the RustPress project.
+pub fn make_component(project_path: &Path, name: &str) -> io::Result<String> {
+    components::create_component(project_path, name)
+}
+
+// Generates a new layout in the RustPress project.
+pub fn make_layout(project_path: &Path, name: &str) -> io::Result<String> {
+    layout::create_layout(project_path, name)
+}
+
 /// Generates a controller, middleware, model and view together.
 pub fn make_all(project_path: &Path, name: &str) -> io::Result<String> {
     all::create_all(project_path, name)
@@ -106,6 +126,11 @@ pub fn make_all(project_path: &Path, name: &str) -> io::Result<String> {
 /// Generates a complete resource with its controller, model, routes and views.
 pub fn make_resource(project_path: &Path, name: &str) -> io::Result<String> {
     resource::create_resource(project_path, name)
+}
+
+/// Generates a error page in the project.
+pub fn make_error_page(project_path: &Path, code: &str) -> io::Result<String> {
+    error::create_error_page(project_path, code)
 }
 
 #[cfg(test)]
@@ -148,6 +173,7 @@ mod tests {
                 .exists()
         );
         assert!(project_path.join("views/pages/home.html").exists());
+        assert!(project_path.join("views/components").is_dir());
         assert!(project_path.join("storage/uploads/images").exists());
         assert!(project_path.join("views/errors/400.html").exists());
         assert!(project_path.join("views/errors/401.html").exists());

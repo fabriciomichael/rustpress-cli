@@ -145,6 +145,7 @@ pub fn create_all(project_path: &Path, name: &str) -> io::Result<String> {
         created_files.push(model_file);
 
         view::create_view(project_path, name)?;
+
         created_files.push(view_file);
 
         Ok(())

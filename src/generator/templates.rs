@@ -5,7 +5,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rustpress-web = "0.2.0"
+rustpress-web = "0.2.1"
 tokio = { version = "1", features = ["full"] }
 dotenvy = "0.15"
 

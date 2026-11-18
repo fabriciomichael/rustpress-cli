@@ -36,7 +36,7 @@ enum Commands {
     /// Generate a new application component.
     #[command(name = "make")]
     Make {
-        /// Type of component to generate (e.g. controller, middleware or model).
+        /// Type of component to generate (controller, middleware, model, view, layout, partial, error, components, all or resource).
         component: String,
 
         /// Name of the component.
@@ -119,9 +119,13 @@ fn main() {
                 "controller" => generator::make_controller(&project_path, &name),
                 "middleware" => generator::make_middleware(&project_path, &name),
                 "model" => generator::make_model(&project_path, &name),
+                "layout" => generator::make_layout(&project_path, &name),
                 "view" => generator::make_view(&project_path, &name),
                 "all" => generator::make_all(&project_path, &name),
                 "resource" => generator::make_resource(&project_path, &name),
+                "partial" => generator::make_partial(&project_path, &name),
+                "error" => generator::make_error_page(&project_path, &name),
+                "components" => generator::make_component(&project_path, &name),
                 _ => {
                     eprintln!("Error: Unsupported component type '{}'.", component);
                     std::process::exit(1);
@@ -135,8 +139,12 @@ fn main() {
                         "middleware" => "Middleware",
                         "model" => "Model",
                         "view" => "View",
+                        "layout" => "Layout",
                         "all" => "Components",
                         "resource" => "Resource",
+                        "partial" => "Partial",
+                        "error" => "Error page",
+                        "components" => "Component",
                         _ => unreachable!(),
                     };
 

@@ -24,6 +24,9 @@ impl TemporaryProject {
         fs::create_dir_all(path.join("src/middleware")).unwrap();
         fs::create_dir_all(path.join("views")).unwrap();
         fs::create_dir_all(path.join("views/pages")).unwrap();
+        fs::create_dir_all(path.join("views/layouts")).unwrap();
+        fs::create_dir_all(path.join("views/errors")).unwrap();
+        fs::create_dir_all(path.join("views/components")).unwrap();
 
         fs::write(
             path.join("Cargo.toml"),
@@ -326,4 +329,188 @@ fn rejects_make_all_when_any_target_exists_without_partial_generation() {
     );
 
     assert_eq!(fs::read_to_string(model_modules).unwrap(), original_models);
+}
+
+#[test]
+fn creates_layout_and_generates_html_file() {
+    let project = TemporaryProject::new();
+
+    let output = project.run_make("layout", "AdminPanel");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let layout_file = project.path.join("views/layouts/admin_panel.html");
+
+    assert!(layout_file.is_file());
+
+    let source = fs::read_to_string(layout_file).unwrap();
+
+    assert!(source.contains("<!DOCTYPE html>"));
+    assert!(source.contains("<title>{{ title }}</title>"));
+    assert!(source.contains("{{ content }}"));
+
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("Layout 'admin_panel' created successfully.")
+    );
+}
+
+#[test]
+fn rejects_duplicate_layout_without_overwriting() {
+    let project = TemporaryProject::new();
+
+    let first = project.run_make("layout", "Admin");
+    assert!(first.status.success());
+
+    let layout_file = project.path.join("views/layouts/admin.html");
+    let original_content = fs::read_to_string(&layout_file).unwrap();
+
+    let second = project.run_make("layout", "Admin");
+
+    assert!(!second.status.success());
+
+    assert_eq!(fs::read_to_string(layout_file).unwrap(), original_content);
+}
+
+#[test]
+fn creates_partial_and_generates_html_file() {
+    let project = TemporaryProject::new();
+
+    let output = project.run_make("partial", "MainNavbar");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let partial_file = project.path.join("views/partials/main_navbar.html");
+
+    assert!(partial_file.is_file());
+
+    let source = fs::read_to_string(partial_file).unwrap();
+
+    assert_eq!(source, "<!-- Partial -->\n");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    assert!(stdout.contains("Partial 'main_navbar' created successfully."));
+}
+
+#[test]
+fn rejects_duplicate_partial_without_overwriting() {
+    let project = TemporaryProject::new();
+
+    let first = project.run_make("partial", "Navbar");
+
+    assert!(
+        first.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&first.stderr)
+    );
+
+    let partial_file = project.path.join("views/partials/navbar.html");
+
+    let original_content = fs::read_to_string(&partial_file).unwrap();
+
+    let second = project.run_make("partial", "Navbar");
+
+    assert!(!second.status.success());
+
+    assert_eq!(fs::read_to_string(partial_file).unwrap(), original_content);
+}
+
+#[test]
+fn creates_error_page_and_generates_html_file() {
+    let project = TemporaryProject::new();
+
+    let output = project.run_make("error", "404");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let error_file = project.path.join("views/errors/404.html");
+
+    assert!(error_file.is_file());
+
+    let source = fs::read_to_string(error_file).unwrap();
+
+    assert!(source.contains("<h1>404</h1>"));
+    assert!(source.contains("Página não encontrada"));
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    assert!(stdout.contains("Error page '404' created successfully."));
+}
+
+#[test]
+fn rejects_duplicate_error_page_without_overwriting() {
+    let project = TemporaryProject::new();
+
+    let first = project.run_make("error", "404");
+
+    assert!(
+        first.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&first.stderr)
+    );
+
+    let error_file = project.path.join("views/errors/404.html");
+    let original_content = fs::read_to_string(&error_file).unwrap();
+
+    let second = project.run_make("error", "404");
+
+    assert!(!second.status.success());
+
+    assert_eq!(fs::read_to_string(error_file).unwrap(), original_content);
+}
+
+#[test]
+fn creates_component_and_generates_html_file() {
+    let project = TemporaryProject::new();
+
+    let output = project.run_make("components", "button");
+
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let component_file = project.path.join("views/components/button.html");
+
+    assert!(component_file.is_file());
+
+    let content = fs::read_to_string(component_file).unwrap();
+
+    assert!(content.contains("<button"));
+    assert!(content.contains("Button"));
+}
+
+#[test]
+fn rejects_duplicate_component_without_overwriting() {
+    let project = TemporaryProject::new();
+
+    let first_output = project.run_make("components", "button");
+
+    assert!(first_output.status.success());
+
+    let component_file = project.path.join("views/components/button.html");
+
+    let original_content = fs::read_to_string(&component_file).unwrap();
+
+    let second_output = project.run_make("components", "button");
+
+    assert!(!second_output.status.success());
+
+    let current_content = fs::read_to_string(component_file).unwrap();
+
+    assert_eq!(current_content, original_content);
 }
