@@ -45,7 +45,7 @@ cargo install rustpress-cli
 To install a specific version:
 
 ```bash
-cargo install rustpress-cli --version 0.2.0
+cargo install rustpress-cli --version 0.3.0
 ```
 
 Confirm the installation:
@@ -118,7 +118,80 @@ rustpress make controller UserController
 rustpress make middleware AuthMiddleware
 rustpress make model User
 rustpress make view UserProfile
+rustpress make layout main
+rustpress make partial navbar
+rustpress make error 404
+rustpress make components button
 ```
+
+
+### Generate layouts
+
+Generate an HTML layout:
+
+```bash
+rustpress make layout main
+```
+
+The generated file is:
+
+```text
+views/layouts/main.html
+```
+
+### Generate partials
+
+Generate a reusable HTML partial:
+
+```bash
+rustpress make partial navbar
+```
+
+The generated file is:
+
+```text
+views/partials/navbar.html
+```
+
+### Generate error pages
+
+Generate one of the supported HTTP error pages:
+
+```bash
+rustpress make error 404
+```
+
+Supported codes are `400`, `401`, `403`, `404`, `405`, and `500`.
+
+The generated file is:
+
+```text
+views/errors/404.html
+```
+
+### Generate reusable HTML components
+
+Generate a reusable component:
+
+```bash
+rustpress make components button
+```
+
+Built-in component templates include `button`, `input`, `card`, `alert`, and `badge`.
+
+Custom component names are also supported:
+
+```bash
+rustpress make components ProductCard
+```
+
+This generates:
+
+```text
+views/components/product_card.html
+```
+
+Component names are normalized to RustPress module-style names, and existing files are never overwritten.
 
 ### Generate all components
 

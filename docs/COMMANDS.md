@@ -1,6 +1,6 @@
 # RustPress CLI — Command Reference
 
-This reference describes the commands available in RustPress CLI 0.2.x. Run commands that operate on an existing application from that application's root directory, unless stated otherwise.
+This reference describes the commands available in RustPress CLI 0.3.x. Run commands that operate on an existing application from that application's root directory, unless stated otherwise.
 
 ## `rustpress new`
 
@@ -23,11 +23,11 @@ rustpress new school_portal
 rustpress new school_portal --path ./projects
 ```
 
-The generator validates project names, creates the source and resource directories, and writes the initial Cargo manifest, application entry point, routes, home controller, home view, default layout, partials, error pages, and storage guidance.
+The generator validates project names, creates the source and resource directories, and writes the initial Cargo manifest, application entry point, routes, home controller, home view, default layout, partials, error pages, components directory, and storage guidance.
 
 ## `rustpress make`
 
-Generates a component inside an existing RustPress project.
+Generates components and resources inside an existing RustPress project.
 
 ```bash
 rustpress make <component> <name>
@@ -41,8 +41,101 @@ Supported component types:
 | `middleware` | `rustpress make middleware AuthMiddleware` | `src/middleware/auth_middleware.rs` and module registration. |
 | `model` | `rustpress make model User` | `src/models/user.rs` and module registration. |
 | `view` | `rustpress make view UserProfile` | `views/pages/user_profile.html`. |
+| `layout` | `rustpress make layout main` | `views/layouts/main.html`. |
+| `partial` | `rustpress make partial navbar` | `views/partials/navbar.html`. |
+| `error` | `rustpress make error 404` | `views/errors/404.html`. |
+| `components` | `rustpress make components button` | `views/components/button.html`. |
 | `all` | `rustpress make all User` | A controller, middleware, model, and view for the supplied name. |
 | `resource` | `rustpress make resource Product` | A controller, model, resource routes, four HTML views, and automatic module and route registration. |
+
+### `make layout`
+
+Generates an HTML layout template.
+
+```bash
+rustpress make layout main
+```
+
+Generated path:
+
+```text
+views/layouts/main.html
+```
+
+The default layout includes the HTML document structure, metadata, a title placeholder, and a content placeholder.
+
+### `make partial`
+
+Generates a reusable HTML partial.
+
+```bash
+rustpress make partial navbar
+```
+
+Generated path:
+
+```text
+views/partials/navbar.html
+```
+
+The generated partial can be used to organize reusable sections of application views.
+
+### `make error`
+
+Generates an HTTP error page for a supported status code.
+
+```bash
+rustpress make error 404
+```
+
+Supported HTTP status codes:
+
+- `400` — Bad Request.
+- `401` — Unauthorized.
+- `403` — Forbidden.
+- `404` — Not Found.
+- `405` — Method Not Allowed.
+- `500` — Internal Server Error.
+
+Generated path:
+
+```text
+views/errors/404.html
+```
+
+Unsupported status codes are rejected.
+
+### `make components`
+
+Generates reusable HTML components.
+
+```bash
+rustpress make components button
+```
+
+Built-in component templates:
+
+| Component | Description |
+| --- | --- |
+| `button` | HTML button element. |
+| `input` | Form input with a label. |
+| `card` | Card container with title and content. |
+| `alert` | Alert message container. |
+| `badge` | Small badge element. |
+
+Custom component names are also supported:
+
+```bash
+rustpress make components ProductCard
+```
+
+Generated path:
+
+```text
+views/components/product_card.html
+```
+
+Component names are normalized to snake_case for file names. Existing component files are never overwritten.
 
 ### `make all`
 
