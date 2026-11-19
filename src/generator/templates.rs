@@ -8,6 +8,7 @@ edition = "2024"
 rustpress-web = "0.2.1"
 tokio = { version = "1", features = ["full"] }
 dotenvy = "0.15"
+tera = { version = "2.4", features = ["glob_fs"] }
 
 [profile.release]
 lto = true
@@ -101,9 +102,34 @@ impl DatabaseConfig {
 pub const CONFIG_MOD_RS: &str = r#"
 pub mod server;
 pub mod database;
+pub mod templates;
 
 pub use server::ServerConfig;
 pub use database::DatabaseConfig;
+"#;
+
+pub const TEMPLATES_CONFIG_RS: &str = r#"
+use std::sync::OnceLock;
+
+use tera::Tera;
+
+static TEMPLATES: OnceLock<Tera> = OnceLock::new();
+
+pub fn init() -> Result<(), tera::Error> {
+    let mut tera = Tera::new();
+
+    tera.load_from_glob("views/**/*.html")?;
+
+    let _ = TEMPLATES.set(tera);
+
+    Ok(())
+}
+
+pub fn get() -> &'static Tera {
+    TEMPLATES
+        .get()
+        .expect("O Tera ainda não foi inicializado")
+}
 "#;
 
 pub const ENV_EXAMPLE: &str = r#"
@@ -134,6 +160,9 @@ use config::ServerConfig;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     dotenvy::dotenv().ok();
+
+    // Inicializa o motor de templates Tera.
+    config::templates::init()?;
 
     let server_config = ServerConfig::from_env();
     let address = server_config.address();
@@ -206,6 +235,9 @@ http://127.0.0.1:3000
 "#;
 
 pub const HOME_HTML: &str = r#"
+{% extends "layouts/main.html" %}
+
+{% block content %}
 <section>
     <h2>Começa a desenvolver</h2>
 
@@ -215,6 +247,7 @@ pub const HOME_HTML: &str = r#"
 
     <p>Desenvolve a tua aplicação com RustPress e Rust.</p>
 </section>
+{% endblock content %}
 "#;
 
 pub const ROUTES_RS: &str = r#"
@@ -230,19 +263,26 @@ pub fn register(app: &mut App) -> Result<(), rustpress_web::HandlerError> {
 "#;
 
 pub const CONTROLLER_RS: &str = r#"
-use rustpress_web::{Response, TemplateContext};
+use rustpress_web::Response;
+use tera::Context;
 
 pub fn index() -> Response {
-    let mut context = TemplateContext::new();
+    let mut context = Context::new();
 
-    context.set("titulo", "{{project_name}}".into());
+    context.insert("titulo", "{{controller_title}}");
 
-    Response::new().render(
-        "views/pages/home.html",
-        "views/layouts/main.html",
-        "views/partials",
-        &context,
-    )
+    match crate::config::templates::get()
+        .render("pages/{{view_name}}.html", &context)
+    {
+        Ok(html) => Response::new().html(html),
+        Err(error) => {
+            eprintln!("Erro ao renderizar template: {error}");
+
+            Response::new()
+                .status(500)
+                .html("Erro interno do servidor")
+        }
+    }
 }
 "#;
 
@@ -377,17 +417,29 @@ pub const MAIN_LAYOUT_HTML: &str = r#"
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Aplicação web desenvolvida com RustPress.">
-    <title>{{titulo}}</title>
+    <title>{{ titulo }}</title>
 </head>
 <body>
-    {{> navbar}}
-    {{> header}}
+    {% include "partials/navbar.html" %}
+    {% include "partials/header.html" %}
 
     <main>
-        {{{conteudo}}}
+        {% block content %}{% endblock content %}
     </main>
 
-    {{> footer}}
+    {% include "partials/footer.html" %}
 </body>
 </html>
+"#;
+
+pub const VIEW_HTML: &str = r#"
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<section>
+    <h1>{{ titulo }}</h1>
+
+    <p>Esta página está localizada em views/pages/{{view_name}}.html.</p>
+</section>
+{% endblock content %}
 "#;

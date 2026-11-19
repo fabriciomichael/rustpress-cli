@@ -248,56 +248,54 @@ fn prepare_resource(project_path: &Path, name: &str) -> io::Result<ResourcePlan>
     }
 
     let controller_content = r#"
-use rustpress_web::{Request, Response, TemplateContext};
+use rustpress_web::{Request, Response};
+use tera::Context;
+
+fn render_template(view: &str, context: &Context) -> Response {
+    match crate::config::templates::get().render(view, context) {
+        Ok(html) => Response::new().html(html),
+        Err(error) => {
+            eprintln!("Erro ao renderizar template: {error}");
+
+            Response::new()
+                .status(500)
+                .html("Erro interno do servidor")
+        }
+    }
+}
 
 pub fn index() -> Response {
-    let mut context = TemplateContext::new();
-    context.set("titulo", "Listagem de __RESOURCE__".into());
+    let mut context = Context::new();
+    context.insert("titulo", "Listagem de __RESOURCE__");
 
-    Response::new().render(
-        "views/__RESOURCE__/index.html",
-        "views/layouts/main.html",
-        "views/partials",
-        &context,
-    )
+    render_template("__RESOURCE__/index.html", &context)
 }
 
 pub fn show(request: Request) -> Response {
-    let mut context = TemplateContext::new();
-    context.set("titulo", "Detalhes de __MODEL__".into());
-    context.set("id", request.param("id").unwrap_or("").to_string().into());
+    let mut context = Context::new();
+    context.insert("titulo", "Detalhes de __MODEL__");
 
-    Response::new().render(
-        "views/__RESOURCE__/show.html",
-        "views/layouts/main.html",
-        "views/partials",
-        &context,
-    )
+    let id = request.param("id").unwrap_or("").to_string();
+    context.insert("id", &id);
+
+    render_template("__RESOURCE__/show.html", &context)
 }
 
 pub fn create() -> Response {
-    let mut context = TemplateContext::new();
-    context.set("titulo", "Criar __MODEL__".into());
+    let mut context = Context::new();
+    context.insert("titulo", "Criar __MODEL__");
 
-    Response::new().render(
-        "views/__RESOURCE__/create.html",
-        "views/layouts/main.html",
-        "views/partials",
-        &context,
-    )
+    render_template("__RESOURCE__/create.html", &context)
 }
 
 pub fn edit(request: Request) -> Response {
-    let mut context = TemplateContext::new();
-    context.set("titulo", "Editar __MODEL__".into());
-    context.set("id", request.param("id").unwrap_or("").to_string().into());
+    let mut context = Context::new();
+    context.insert("titulo", "Editar __MODEL__");
 
-    Response::new().render(
-        "views/__RESOURCE__/edit.html",
-        "views/layouts/main.html",
-        "views/partials",
-        &context,
-    )
+    let id = request.param("id").unwrap_or("").to_string();
+    context.insert("id", &id);
+
+    render_template("__RESOURCE__/edit.html", &context)
 }
 
 pub fn store() -> Response {
@@ -353,6 +351,10 @@ pub fn register(app: &mut App) -> Result<(), String> {
         Ok(crate::controllers::__MODULE___controller::edit(request))
     })?;
 
+    app.post("/__RESOURCE__/:id", |_request: Request, _response: Response| {
+        Ok(crate::controllers::__MODULE___controller::update())
+    })?;
+
     app.put("/__RESOURCE__/:id", |_request: Request, _response: Response| {
         crate::controllers::__MODULE___controller::update()
     })?;
@@ -380,25 +382,70 @@ pub fn register(app: &mut App) -> Result<(), String> {
             path: project_path.join(format!("src/routes/{resource_name}.rs")),
             content: routes_content,
         },
-         GeneratedFile {
+        GeneratedFile {
             path: project_path.join(format!("views/{resource_name}/index.html")),
-            content: "<h1>Listagem</h1>\n<p>Lista de recursos registados.</p>\n".to_string(),
+            content: r#"
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<section>
+    <h1>{{ titulo }}</h1>
+    <p>Lista de recursos registados.</p>
+</section>
+{% endblock content %}
+"#
+            .to_string(),
         },
         GeneratedFile {
             path: project_path.join(format!("views/{resource_name}/show.html")),
-            content: "<h1>Detalhes</h1>\n<p>ID: {{id}}</p>\n".to_string(),
+            content: r#"
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<section>
+    <h1>{{ titulo }}</h1>
+    <p>ID: {{ id }}</p>
+</section>
+{% endblock content %}
+"#
+            .to_string(),
         },
         GeneratedFile {
             path: project_path.join(format!("views/{resource_name}/create.html")),
-            content: "<h1>Criar</h1>\n<form action=\"/__RESOURCE__\" method=\"POST\">\n    <!-- Adiciona aqui os campos do recurso. -->\n    <button type=\"submit\">Guardar</button>\n</form>\n"
-                .replace("__RESOURCE__", &resource_name),
+            content: r#"
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<section>
+    <h1>{{ titulo }}</h1>
+    <form action="/__RESOURCE__" method="POST">
+        <!-- Adiciona aqui os campos do recurso. -->
+        <button type="submit">Guardar</button>
+    </form>
+</section>
+{% endblock content %}
+"#
+            .replace("__RESOURCE__", &resource_name),
         },
         GeneratedFile {
             path: project_path.join(format!("views/{resource_name}/edit.html")),
-            content: "<h1>Editar</h1>\n<p>ID: {{id}}</p>\n<form action=\"/__RESOURCE__/{{id}}\" method=\"POST\">\n    <!-- Adiciona aqui os campos do recurso. -->\n    <button type=\"submit\">Actualizar</button>\n</form>\n"
-                .replace("__RESOURCE__", &resource_name),
+            content: r#"
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<section>
+    <h1>{{ titulo }}</h1>
+    <p>ID: {{ id }}</p>
+    <form action="/__RESOURCE__/{{ id }}" method="POST">
+        <!-- Adiciona aqui os campos do recurso. -->
+        <button type="submit">Actualizar</button>
+    </form>
+</section>
+{% endblock content %}
+"#
+            .replace("__RESOURCE__", &resource_name),
         },
-        ];
+    ];
 
     let modules = vec![
         prepare_module_update(&directories[0], &format!("{module_name}_controller"))?,
@@ -583,13 +630,32 @@ mod tests {
         let create_view =
             fs::read_to_string(project_path.join("views/products/create.html")).unwrap();
 
+        assert!(create_view.contains("{% extends \"layouts/main.html\" %}"));
+        assert!(create_view.contains("{% block content %}"));
+        assert!(create_view.contains("{% endblock content %}"));
         assert!(create_view.contains("action=\"/products\""));
         assert!(create_view.contains("method=\"POST\""));
 
         let edit_view = fs::read_to_string(project_path.join("views/products/edit.html")).unwrap();
 
-        assert!(edit_view.contains("action=\"/products/{{id}}\""));
+        assert!(edit_view.contains("{% extends \"layouts/main.html\" %}"));
+        assert!(edit_view.contains("{% block content %}"));
+        assert!(edit_view.contains("{% endblock content %}"));
+        assert!(edit_view.contains("action=\"/products/{{ id }}\""));
         assert!(edit_view.contains("method=\"POST\""));
+
+        let index_view =
+            fs::read_to_string(project_path.join("views/products/index.html")).unwrap();
+
+        let show_view = fs::read_to_string(project_path.join("views/products/show.html")).unwrap();
+
+        for view in [&index_view, &show_view] {
+            assert!(view.contains("{% extends \"layouts/main.html\" %}"));
+            assert!(view.contains("{% block content %}"));
+            assert!(view.contains("{% endblock content %}"));
+        }
+
+        assert!(show_view.contains("{{ id }}"));
 
         let controllers = fs::read_to_string(project_path.join("src/controllers/mod.rs")).unwrap();
         let models = fs::read_to_string(project_path.join("src/models/mod.rs")).unwrap();
@@ -603,6 +669,14 @@ mod tests {
 
         assert!(web.contains("crate::routes::products::register(app)?;"));
         assert!(web.contains("crate::controllers::home_controller::index()"));
+
+        let product_routes =
+            fs::read_to_string(project_path.join("src/routes/products.rs")).unwrap();
+
+        assert!(product_routes.contains("app.post(\"/products/:id\""));
+        assert!(product_routes.contains("app.put(\"/products/:id\""));
+        assert!(product_routes.contains("app.post(\"/products\""));
+        assert!(product_routes.contains("app.delete(\"/products/:id\""));
 
         fs::remove_dir_all(project_path).unwrap();
     }

@@ -31,11 +31,18 @@ pub fn write_project_files(root: &Path, name: &str) -> io::Result<()> {
     )?;
 
     fs::write(
+        root.join("src/config/templates.rs"),
+        templates::TEMPLATES_CONFIG_RS.trim_start(),
+    )?;
+
+    fs::write(
         root.join("src/routes/web.rs"),
         templates::ROUTES_RS.trim_start(),
     )?;
 
-    let controller = templates::CONTROLLER_RS.replace("{{project_name}}", name);
+    let controller = templates::CONTROLLER_RS
+        .replace("{{controller_title}}", name)
+        .replace("{{view_name}}", "home");
 
     fs::write(
         root.join("src/controllers/home_controller.rs"),

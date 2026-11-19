@@ -184,7 +184,11 @@ fn creates_view_and_generates_html_file() {
 
     let source = fs::read_to_string(view_file).unwrap();
 
-    assert_eq!(source, "<h1>{{titulo}}</h1>\n");
+    assert!(source.contains("{% extends \"layouts/main.html\" %}"));
+    assert!(source.contains("{% block content %}"));
+    assert!(source.contains("{{ titulo }}"));
+    assert!(source.contains("views/pages/user_profile.html"));
+    assert!(source.contains("{% endblock content %}"));
 
     let stdout = String::from_utf8_lossy(&output.stdout);
 
@@ -258,7 +262,13 @@ fn creates_all_components_and_registers_modules() {
             .contains("pub struct User")
     );
 
-    assert_eq!(fs::read_to_string(view).unwrap(), "<h1>{{titulo}}</h1>\n");
+    let view_source = fs::read_to_string(view).unwrap();
+
+    assert!(view_source.contains("{% extends \"layouts/main.html\" %}"));
+    assert!(view_source.contains("{% block content %}"));
+    assert!(view_source.contains("{{ titulo }}"));
+    assert!(view_source.contains("views/pages/user.html"));
+    assert!(view_source.contains("{% endblock content %}"));
 
     assert!(
         fs::read_to_string(project.path.join("src/controllers/mod.rs"))

@@ -2,7 +2,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::Path;
 
-use super::validation;
+use super::{templates, validation};
 
 pub fn create_controller(project_path: &Path, name: &str) -> io::Result<String> {
     let module_name = validation::normalize_module_name(name)?;
@@ -53,12 +53,13 @@ pub fn create_controller(project_path: &Path, name: &str) -> io::Result<String> 
         ));
     }
 
-    let controller_source = r#"use rustpress_web::Response;
+    let view_name = module_name
+        .strip_suffix("_controller")
+        .unwrap_or(&module_name);
 
-pub fn index() -> Response {
-    Response::new()
-}
-"#;
+    let controller_source = templates::CONTROLLER_RS
+        .replace("{{controller_title}}", name)
+        .replace("{{view_name}}", view_name);
 
     let mut created_controller = false;
 

@@ -2,7 +2,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::Path;
 
-use super::validation;
+use super::{templates, validation};
 
 pub fn create_view(project_path: &Path, name: &str) -> io::Result<String> {
     let module_name = validation::normalize_module_name(name)?;
@@ -22,7 +22,7 @@ pub fn create_view(project_path: &Path, name: &str) -> io::Result<String> {
 
     let view_file = pages_dir.join(format!("{module_name}.html"));
 
-    let view_source = "<h1>{{titulo}}</h1>\n";
+    let view_source = templates::VIEW_HTML.replace("{{view_name}}", &module_name);
 
     let mut file = OpenOptions::new()
         .write(true)
@@ -69,10 +69,12 @@ mod tests {
         let view_file = project.join("views/pages/home.html");
 
         assert!(view_file.is_file());
-        assert_eq!(
-            fs::read_to_string(view_file).unwrap(),
-            "<h1>{{titulo}}</h1>\n"
-        );
+        let source = fs::read_to_string(view_file).unwrap();
+
+        assert!(source.contains("{% extends \"layouts/main.html\" %}"));
+        assert!(source.contains("{% block content %}"));
+        assert!(source.contains("{{ titulo }}"));
+        assert!(source.contains("views/pages/home.html"));
 
         fs::remove_dir_all(project).unwrap();
     }
