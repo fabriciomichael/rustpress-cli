@@ -46,7 +46,7 @@ Supported component types:
 | `error` | `rustpress make error 404` | `views/errors/404.html`. |
 | `components` | `rustpress make components button` | `views/components/button.html`. |
 | `all` | `rustpress make all User` | A controller, middleware, model, and view for the supplied name. |
-| `resource` | `rustpress make resource Product` | A controller, model, resource routes, four HTML views, and automatic module and route registration. |
+| `resource` | `rustpress make resource Product` | A controller, model, resource routes, four Tera HTML templates, and automatic module and route registration. |
 
 ### `make layout`
 
@@ -180,9 +180,70 @@ The generator also registers the Rust modules in their respective `mod.rs` files
 
 The generated routes cover listing, displaying, creating, storing, editing, updating, and deleting resources.
 
-**Note:** The `store`, `update`, and `destroy` controller handlers are placeholders that return HTTP 501. Persistence logic must be implemented by the application developer.
+**Note:** The generated HTML views use Tera templates. The `store`, `update`, and `destroy` controller handlers are placeholders that return HTTP 501. Database operations and persistence logic must be implemented by the application developer.
 
 Existing files, module declarations, and route registrations are protected against accidental overwrites. The generator attempts to roll back its changes if generation fails.
+
+## Tera Template Engine
+
+Applications generated with `rustpress new` use [Tera](https://keats.github.io/tera/) as their template engine.
+
+The CLI configures Tera centrally in:
+
+```text
+src/config/templates.rs
+```
+
+Templates are loaded from the following directory pattern:
+
+```text
+views/**/*.html
+```
+
+The template engine is initialized in `src/main.rs` before route registration:
+
+```rust
+config::templates::init()?;
+```
+
+### Rendering templates in controllers
+
+Generated controllers use `tera::Context` to pass data to templates and the centralized template instance to render HTML:
+
+```rust
+use tera::Context;
+
+let mut context = Context::new();
+context.insert("titulo", "My Page");
+
+let html = crate::config::templates::get()
+    .render("pages/index.html", &context)?;
+
+```
+
+The rendered HTML can then be returned using `Response::html()`.
+
+### Layout inheritance
+
+Views can extend layouts using Tera inheritance:
+
+```html
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<h1>{{ titulo }}</h1>
+{% endblock content %}
+```
+
+### Reusable partials
+
+Templates can include reusable partials:
+
+```html
+{% include "partials/navbar.html" %}
+```
+
+The generated layout already uses partials for shared page sections. Use `rustpress make layout`, `rustpress make partial`, and `rustpress make view` to generate additional template files.
 
 ## `rustpress dev`
 

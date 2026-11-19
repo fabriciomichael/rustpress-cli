@@ -27,6 +27,7 @@ It provides project scaffolding, component and resource generators, a developmen
 - Compile applications in release mode and assemble a distribution directory.
 - Select the binary target and resource directories included in a distribution.
 - Validate project names and prevent accidental overwrites during component generation.
+- Use Tera as the integrated template engine for generated applications, with centralized initialization, template contexts, layout inheritance, and reusable partials.
 
 ## Requirements
 
@@ -45,7 +46,7 @@ cargo install rustpress-cli
 To install a specific version:
 
 ```bash
-cargo install rustpress-cli --version 0.3.0
+cargo install rustpress-cli --version 0.3.1
 ```
 
 Confirm the installation:
@@ -124,6 +125,87 @@ rustpress make error 404
 rustpress make components button
 ```
 
+## Template engine — Tera
+
+New projects generated with RustPress CLI use [Tera](https://keats.github.io/tera/) as their template engine.
+
+Tera is initialized centrally when the application starts. The shared instance is available through `crate::config::templates::get()`, avoiding repeated initialization in controllers.
+
+### Template configuration
+
+The generated project includes:
+
+```text
+src/config/
+├── mod.rs
+├── server.rs
+├── database.rs
+└── templates.rs
+```
+
+The template configuration loads HTML files from: 
+
+```text
+views/**/*.html 
+```
+
+The application initializes Tera in `main.rs` before registering routes:
+
+```rust
+config::templates::init()?;
+```
+
+## Rendering a template
+
+Controllers use `tera::Context` to pass data to templates:
+
+```rust
+use rustpress_web::Response;
+use tera::Context;
+
+pub fn index() -> Response {
+    let mut context = Context::new();
+
+    context.insert("titulo", "Welcome to RustPress");
+
+    match crate::config::templates::get()
+        .render("pages/home.html", &context)
+    {
+        Ok(html) => Response::new().html(html),
+        Err(error) => {
+            eprintln!("Template rendering error: {error}");
+
+            Response::new()
+                .status(500)
+                .html("Internal server error")
+        }
+    }
+}
+```
+
+## Layout inheritance
+
+Views can extend layouts using Tera inheritance:
+
+```html
+{% extends "layouts/main.html" %}
+
+{% block content %}
+<section>
+    <h1>{{ titulo }}</h1>
+</section>
+{% endblock content %}
+```
+
+Layouts can also include reusable partials:
+
+```html
+{% include "partials/navbar.html" %}
+```
+
+This approach allows developers to share page structures and reusable HTML sections across their applications.
+
+See the [Tera documentation](https://keats.github.io/tera/) for filters, loops, conditionals, macros, and other template features.
 
 ### Generate layouts
 
