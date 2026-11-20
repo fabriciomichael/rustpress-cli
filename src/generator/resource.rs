@@ -356,11 +356,15 @@ pub fn register(app: &mut App) -> Result<(), String> {
     })?;
 
     app.put("/__RESOURCE__/:id", |_request: Request, _response: Response| {
-        crate::controllers::__MODULE___controller::update()
+        Ok(crate::controllers::__MODULE___controller::update())
+    })?;
+
+    app.patch("/__RESOURCE__/:id", |_request: Request, _response: Response| {
+        Ok(crate::controllers::__MODULE___controller::update())
     })?;
 
     app.delete("/__RESOURCE__/:id", |_request: Request, _response: Response| {
-        crate::controllers::__MODULE___controller::destroy()
+        Ok(crate::controllers::__MODULE___controller::destroy())
     })?;
 
     Ok(())
@@ -674,9 +678,17 @@ mod tests {
             fs::read_to_string(project_path.join("src/routes/products.rs")).unwrap();
 
         assert!(product_routes.contains("app.post(\"/products/:id\""));
-        assert!(product_routes.contains("app.put(\"/products/:id\""));
         assert!(product_routes.contains("app.post(\"/products\""));
+
+        assert!(product_routes.contains("app.put(\"/products/:id\""));
+        assert!(product_routes.contains("app.patch(\"/products/:id\""));
         assert!(product_routes.contains("app.delete(\"/products/:id\""));
+
+        assert!(product_routes.contains("Ok(crate::controllers::product_controller::update())"));
+
+        assert!(product_routes.contains("Ok(crate::controllers::product_controller::destroy())"));
+
+        assert!(!product_routes.contains("_fallible"));
 
         fs::remove_dir_all(project_path).unwrap();
     }

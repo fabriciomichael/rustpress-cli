@@ -5,7 +5,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rustpress-web = "0.2.1"
+rustpress-web = "0.3.1"
 tokio = { version = "1", features = ["full"] }
 dotenvy = "0.15"
 tera = { version = "2.4", features = ["glob_fs"] }
@@ -172,6 +172,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let _database_url = database_config.connection_string();
 
     let mut app = App::new();
+
+    // Serve ficheiros estáticos a partir da pasta public.
+    app.static_files("/assets", "public");
 
     routes::web::register(&mut app)?;
 
